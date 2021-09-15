@@ -22,7 +22,9 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
     @Published var centerColor: UIColor?
     @Published var isUploading = false
     
+    // for testing
     let useDeepLab = false
+    
     let model = DeepLabV3()
     let context = CIContext(options: nil)
     
@@ -134,6 +136,7 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
         self.isClipped = true
     }
     
+    // this is doing the magic
     func removeBg() {
         if self.useDeepLab {
             let removedImage = removeBackground(image: UIImage(data: self.picData)!)!
@@ -229,7 +232,7 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
     }
 }
 
-
+// DeepLab BG removal
 extension CameraModel {
     private func removeBackground(image:UIImage) -> UIImage?{
         let resizedImage = image.resized(to: CGSize(width: 513, height: 513))
@@ -290,6 +293,8 @@ extension CameraModel {
     
 }
 
+
+//this is for color picker
 extension CALayer {
     public func pickColor(at position: CGPoint) -> UIColor? {
         var pixel = [UInt8](repeatElement(0, count: 4))
