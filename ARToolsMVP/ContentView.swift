@@ -18,6 +18,8 @@ struct CameraView: View {
     @ObservedObject var camera = CameraModel()
     @State var showPicker = false
     
+    let buttonPadding: CGFloat = 20.0
+    
     var body: some View{
         ZStack{
             CameraPreview(camera: camera)
@@ -27,6 +29,7 @@ struct CameraView: View {
                     .stroke(Color.white,lineWidth: 1)
                     .frame(width: 20, height: 20)
             }
+            
             
             if camera.isClipped{
                 VisualEffectView(effect: UIBlurEffect(style: .dark))
@@ -44,18 +47,37 @@ struct CameraView: View {
                                 Image(systemName: "chevron.backward")
                                     .foregroundColor(.black)
                                     .padding(.vertical,12)
-                                    .padding(.horizontal,20)
+                                    .padding(.horizontal,self.buttonPadding)
                                     .background(Color.white)
                                     .clipShape(Capsule())
                             } else {
                                 Text("<-")
                                     .foregroundColor(.black)
                                     .padding(.vertical,12)
-                                    .padding(.horizontal,20)
+                                    .padding(.horizontal,self.buttonPadding)
                                     .background(Color.white)
                                     .clipShape(Capsule())
                             }
                         }).padding(.horizontal,15)
+                        
+                        Spacer()
+                        Button(action: camera.removeBg, label: {
+                            if #available(iOS 14.0, *) {
+                                Image(systemName: "photo.on.rectangle.angled")
+                                    .foregroundColor(.black)
+                                    .padding(.vertical,10)
+                                    .padding(.horizontal,self.buttonPadding)
+                                    .background(Color.white)
+                                    .clipShape(Capsule())
+                            } else {
+                                Text("RemBG")
+                                    .foregroundColor(.black)
+                                    .padding(.vertical,12)
+                                    .padding(.horizontal,self.buttonPadding)
+                                    .background(Color.white)
+                                    .clipShape(Capsule())
+                            }
+                        })
                         
                         Spacer()
                         
@@ -64,28 +86,38 @@ struct CameraView: View {
                                 Image(systemName: "square.and.arrow.up")
                                     .foregroundColor(.black)
                                     .padding(.vertical,10)
-                                    .padding(.horizontal,20)
+                                    .padding(.horizontal,self.buttonPadding)
                                     .background(Color.white)
                                     .clipShape(Capsule())
                             } else {
                                 Text("Share")
                                     .foregroundColor(.black)
-                                    .padding(.vertical,12)
-                                    .padding(.horizontal,20)
+                                    .padding(.vertical,15)
+                                    .padding(.horizontal,self.buttonPadding)
                                     .background(Color.white)
                                     .clipShape(Capsule())
                             }
                         })
                         
-                        Button(action: {if !camera.isSaved{camera.savePic()}}, label: {
-                            Text(camera.isSaved ? "Saved" : "Save")
-                                .foregroundColor(.black)
-                                //.fontWeight(.semibold)
-                                .padding(.vertical,10)
-                                .padding(.horizontal,20)
-                                .background(Color.white)
-                                .clipShape(Capsule())
-                        }).padding(.horizontal,15)
+                        Button(action: {camera.savePic()}, label: {
+                            if #available(iOS 14.0, *) {
+                                Image(systemName: "square.and.arrow.down")
+                                    .foregroundColor(.black)
+                                    .padding(.vertical,10)
+                                    .padding(.horizontal,self.buttonPadding)
+                                    .background(Color.white)
+                                    .clipShape(Capsule())
+                            } else {
+                                Text("Save")
+                                    .font(.caption)
+                                    .foregroundColor(.black)
+                                    //.fontWeight(.semibold)
+                                    .padding(.vertical,15)
+                                    .padding(.horizontal,self.buttonPadding)
+                                    .background(Color.white)
+                                    .clipShape(Capsule())
+                            }
+                        })
                     }
                 } else {
                     
@@ -145,6 +177,14 @@ struct CameraView: View {
                     .frame(height: 75)
                 }
             }.padding(15)
+            
+            if camera.isUploading{
+                VisualEffectView(effect: UIBlurEffect(style: .dark))
+                Text("Uploading…")
+                    .font(.title)
+                    .foregroundColor(.white)
+            }
+            
         }
         .onAppear(perform: {
             camera.authorizeCamera()

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import Alamofire
 
 class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
     @Published var isTaken = false
@@ -19,7 +20,9 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
     @Published var isClipped = false
     @Published var clippedImage: Image? = nil
     @Published var centerColor: UIColor?
+    @Published var isUploading = false
     
+    let useDeepLab = false
     let model = DeepLabV3()
     let context = CIContext(options: nil)
     
@@ -126,13 +129,44 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
         }
         guard let imageData = photo.fileDataRepresentation() else{return}
         
-        //self.picData = imageData
-        let removedImage = removeBackground(image: UIImage(data: imageData)!)!
-        self.picData = (removedImage.pngData())!
-        
+        self.picData = imageData
+        self.clippedImage = Image(uiImage: UIImage(data: imageData)!)
         self.isClipped = true
-        self.clippedImage = Image(uiImage: removedImage)
-        
+    }
+    
+    func removeBg() {
+        if self.useDeepLab {
+            let removedImage = removeBackground(image: UIImage(data: self.picData)!)!
+            self.picData = (removedImage.pngData())!
+            self.isClipped = true
+            self.clippedImage = Image(uiImage: removedImage)
+        } else {
+            
+            self.isUploading = true
+            AF.upload(
+                multipartFormData: { builder in
+                    builder.append(
+                        self.picData,
+                        withName: "image_file",
+                        fileName: "file.jpg",
+                        mimeType: "image/jpeg"
+                    )
+                },
+                to: URL(string: "https://api.remove.bg/v1.0/removebg")!,
+                headers: [
+                    "X-Api-Key": "JVzwMxe4WGF6Z9X9b538fPJe"
+                ]
+            ).responseJSON(completionHandler: { imageResponse in
+                self.isUploading = false
+                
+                guard let imageData = imageResponse.data,
+                      let image = UIImage(data: imageData) else { return }
+                
+                self.picData = imageData
+                self.isClipped = true
+                self.clippedImage = Image(uiImage: image)
+            })
+        }
     }
     
     func savePic(){
@@ -142,7 +176,7 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
         // saving Image...
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
         
-        self.isSaved = true
+        //self.isSaved = true
     }
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
@@ -195,6 +229,7 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
     }
 }
 
+
 extension CameraModel {
     private func removeBackground(image:UIImage) -> UIImage?{
         let resizedImage = image.resized(to: CGSize(width: 513, height: 513))
@@ -207,7 +242,6 @@ extension CameraModel {
         }
         return nil
     }
-    
     private func removeWhitePixels(image:CIImage) -> CIImage?{
         let chromaCIFilter = chromaKeyFilter()
         chromaCIFilter?.setValue(image, forKey: kCIInputImageKey)
