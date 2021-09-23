@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AVFoundation
-import Alamofire
 
 class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
     @Published var isTaken = false
@@ -20,24 +19,10 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
     @Published var isClipped = false
     @Published var clippedImage: Image? = nil
     @Published var centerColor: UIColor?
-    @Published var isUploading = false
     
-    // for testing
-    let useDeepLab = false
-    
-    let model = DeepLabV3()
-    let context = CIContext(options: nil)
-    
-    var timer = Timer()
-    var updateColor = true
-    
-    override init() {
-        super.init()
-        self.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { _ in
-            self.updateColor = true
-        })
-    }
-    
+    var pickingColor = false
+    let pickWidth: CGFloat = 20.0
+                
     func authorizeCamera(){
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -70,16 +55,6 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
             if self.session.canAddOutput(self.output){
                 self.session.addOutput(self.output)
             }
-            
-            let videoOutput = AVCaptureVideoDataOutput()
-            videoOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as AnyHashable: NSNumber(value: kCMPixelFormat_32BGRA)] as! [String : Any]
-            videoOutput.alwaysDiscardsLateVideoFrames = true
-            videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "com.camera.video.queue"))
-            
-            if self.session.canAddOutput(videoOutput) {
-                self.session.addOutput(videoOutput)
-            }
-            
             
             self.session.commitConfiguration()
         }
@@ -118,197 +93,70 @@ class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCa
         }
     }
     
+    func pickColor() {
+        self.pickingColor = true
+        self.takePic()
+    }
+    
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        if error != nil{
+            return
+        }
+        guard let imageData = photo.fileDataRepresentation(), let photoImage = UIImage(data: imageData) else{return}
+        
+        if (!self.pickingColor) {
+            self.picData = imageData
+            self.clippedImage = Image(uiImage: photoImage)
+            self.isClipped = true
+        } else {
+            self.centerColor = photoImage.cropsToSquare(cropSize: self.pickWidth).averageColor
+            self.pickingColor = false
+        }
+    }
+        
+}
+
+// share and save
+extension CameraModel {
     func share(){
         guard let image = UIImage(data: self.picData) else{return}
         let av = UIActivityViewController(activityItems: [image], applicationActivities: nil)
         UIApplication.shared.windows.first?.rootViewController?.present(av, animated: true, completion: nil)
     }
     
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        
-        if error != nil{
-            return
-        }
-        guard let imageData = photo.fileDataRepresentation() else{return}
-        
-        self.picData = imageData
-        self.clippedImage = Image(uiImage: UIImage(data: imageData)!)
-        self.isClipped = true
-    }
-    
-    // this is doing the magic
-    func removeBg() {
-        if self.useDeepLab {
-            let removedImage = removeBackground(image: UIImage(data: self.picData)!)!
-            self.picData = (removedImage.pngData())!
-            self.isClipped = true
-            self.clippedImage = Image(uiImage: removedImage)
-        } else {
-            
-            self.isUploading = true
-            AF.upload(
-                multipartFormData: { builder in
-                    builder.append(
-                        self.picData,
-                        withName: "image_file",
-                        fileName: "file.jpg",
-                        mimeType: "image/jpeg"
-                    )
-                },
-                to: URL(string: "https://api.remove.bg/v1.0/removebg")!,
-                headers: [
-                    "X-Api-Key": "JVzwMxe4WGF6Z9X9b538fPJe"
-                ]
-            ).responseJSON(completionHandler: { imageResponse in
-                self.isUploading = false
-                
-                guard let imageData = imageResponse.data,
-                      let image = UIImage(data: imageData) else { return }
-                
-                self.picData = imageData
-                self.isClipped = true
-                self.clippedImage = Image(uiImage: image)
-            })
-        }
-    }
-    
     func savePic(){
-        
         guard let image = UIImage(data: self.picData) else{return}
-        
-        // saving Image...
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-        
-        //self.isSaved = true
-    }
-    
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            return
-        }
-        CVPixelBufferLockBaseAddress(imageBuffer, CVPixelBufferLockFlags(rawValue: CVOptionFlags(0)))
-        guard let baseAddr = CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 0) else {
-            return
-        }
-        let width = CVPixelBufferGetWidthOfPlane(imageBuffer, 0)
-        let height = CVPixelBufferGetHeightOfPlane(imageBuffer, 0)
-        let bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0)
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bimapInfo: CGBitmapInfo = [
-            .byteOrder32Little,
-            CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)]
-        
-        guard let content = CGContext(data: baseAddr, width: width, height: height, bitsPerComponent: 8, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: bimapInfo.rawValue) else {
-            return
-        }
-        
-        guard let cgImage = content.makeImage() else {
-            return
-        }
-        
-        DispatchQueue.main.async {
-            if self.updateColor {
-                
-                let cgWidht = cgImage.width
-                let cgHeight = cgImage.height
-                
-                let previewLayer = CALayer()
-                previewLayer.bounds = CGRect(x: 0, y: 0, width: cgWidht, height: cgHeight)
-                previewLayer.contentsGravity = CALayerContentsGravity.resizeAspectFill
-                previewLayer.masksToBounds = true
-                previewLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(.pi / 2.0)))
-                previewLayer.contents = cgImage
-                
-                let center: CGPoint = CGPoint(x: previewLayer.frame.width/2, y: previewLayer.frame.height/2)
-                
-                //todo: needs an AVERAGE of a certain area
-                
-                self.centerColor = previewLayer.pickColor(at: center)
-                
-                self.updateColor = false
-            }
-        }
-        
     }
 }
 
-// DeepLab BG removal
-extension CameraModel {
-    private func removeBackground(image:UIImage) -> UIImage?{
-        let resizedImage = image.resized(to: CGSize(width: 513, height: 513))
-        if let pixelBuffer = resizedImage.pixelBuffer(width: Int(resizedImage.size.width), height: Int(resizedImage.size.height)){
-            if let outputImage = (try? model.prediction(image: pixelBuffer))?.semanticPredictions.image(min: 0, max: 1, axes: (0,0,1)), let outputCIImage = CIImage(image:outputImage){
-                if let maskImage = removeWhitePixels(image:outputCIImage), let resizedCIImage = CIImage(image: resizedImage), let compositedImage = composite(image: resizedCIImage, mask: maskImage){
-                    return UIImage(ciImage: compositedImage).resized(to: CGSize(width: image.size.width, height: image.size.height))
-                }
-            }
-        }
-        return nil
-    }
-    private func removeWhitePixels(image:CIImage) -> CIImage?{
-        let chromaCIFilter = chromaKeyFilter()
-        chromaCIFilter?.setValue(image, forKey: kCIInputImageKey)
-        return chromaCIFilter?.outputImage
-    }
-    
-    private func composite(image:CIImage,mask:CIImage) -> CIImage?{
-        return CIFilter(name:"CISourceOutCompositing",parameters:
-                            [kCIInputImageKey: image,kCIInputBackgroundImageKey: mask])?.outputImage
-    }
-    
-    // modified from https://developer.apple.com/documentation/coreimage/applying_a_chroma_key_effect
-    private func chromaKeyFilter() -> CIFilter? {
-        let size = 64
-        var cubeRGB = [Float]()
+// color picker extensions
+extension UIImage {
+    func cropsToSquare(cropSize: CGFloat) -> UIImage {
+        let refWidth = CGFloat((self.cgImage!.width))
+        let refHeight = CGFloat((self.cgImage!.height))
         
-        for z in 0 ..< size {
-            let blue = CGFloat(z) / CGFloat(size-1)
-            for y in 0 ..< size {
-                let green = CGFloat(y) / CGFloat(size-1)
-                for x in 0 ..< size {
-                    let red = CGFloat(x) / CGFloat(size-1)
-                    let brightness = getBrightness(red: red, green: green, blue: blue)
-                    let alpha: CGFloat = brightness == 1 ? 0 : 1
-                    cubeRGB.append(Float(red * alpha))
-                    cubeRGB.append(Float(green * alpha))
-                    cubeRGB.append(Float(blue * alpha))
-                    cubeRGB.append(Float(alpha))
-                }
-            }
-        }
+        let x = (refWidth - cropSize) / 2.0
+        let y = (refHeight - cropSize) / 2.0
         
-        let data = Data(buffer: UnsafeBufferPointer(start: &cubeRGB, count: cubeRGB.count))
+        let cropRect = CGRect(x: x, y: y, width: cropSize, height: cropSize)
+        let imageRef = self.cgImage?.cropping(to: cropRect)
+        let cropped = UIImage(cgImage: imageRef!, scale: 0.0, orientation: self.imageOrientation)
         
-        let colorCubeFilter = CIFilter(name: "CIColorCube", parameters: ["inputCubeDimension": size, "inputCubeData": data])
-        return colorCubeFilter
+        return cropped
     }
     
-    // modified from https://developer.apple.com/documentation/coreimage/applying_a_chroma_key_effect
-    private func getBrightness(red: CGFloat, green: CGFloat, blue: CGFloat) -> CGFloat {
-        let color = UIColor(red: red, green: green, blue: blue, alpha: 1)
-        var brightness: CGFloat = 0
-        color.getHue(nil, saturation: nil, brightness: &brightness, alpha: nil)
-        return brightness
-    }
-    
-}
+    var averageColor: UIColor? {
+        guard let inputImage = CIImage(image: self) else { return nil }
+        let extentVector = CIVector(x: inputImage.extent.origin.x, y: inputImage.extent.origin.y, z: inputImage.extent.size.width, w: inputImage.extent.size.height)
 
+        guard let filter = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: inputImage, kCIInputExtentKey: extentVector]) else { return nil }
+        guard let outputImage = filter.outputImage else { return nil }
 
-//this is for color picker
-extension CALayer {
-    public func pickColor(at position: CGPoint) -> UIColor? {
-        var pixel = [UInt8](repeatElement(0, count: 4))
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
-        guard let context = CGContext(data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: bitmapInfo) else {
-            return nil
-        }
-        context.translateBy(x: -position.x, y: -position.y)
-        render(in: context)
-        
-        return UIColor(red: CGFloat(pixel[0]) / 255.0,
-                       green: CGFloat(pixel[1]) / 255.0,
-                       blue: CGFloat(pixel[2]) / 255.0,
-                       alpha: CGFloat(pixel[3]) / 255.0)
+        var bitmap = [UInt8](repeating: 0, count: 4)
+        let context = CIContext(options: [.workingColorSpace: kCFNull])
+        context.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
+
+        return UIColor(red: CGFloat(bitmap[0]) / 255, green: CGFloat(bitmap[1]) / 255, blue: CGFloat(bitmap[2]) / 255, alpha: CGFloat(bitmap[3]) / 255)
     }
 }

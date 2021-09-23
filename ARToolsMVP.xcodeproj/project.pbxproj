@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 50;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -28,8 +28,9 @@
 		5E28C6CA26ED888A00483BAF /* MLMultiArray+Image.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E28C6BC26ED888A00483BAF /* MLMultiArray+Image.swift */; };
 		5E28C6CB26ED888A00483BAF /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5E28C6BD26ED888A00483BAF /* LICENSE.txt */; };
 		5E28C6CD26ED894600483BAF /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E28C6CC26ED894600483BAF /* CameraModel.swift */; };
-		5E28C6D126ED93E500483BAF /* DeepLabV3.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 5E28C6D026ED93E500483BAF /* DeepLabV3.mlmodel */; };
-		5E90B0E126F1DC1D00CAF2A2 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 5E90B0E026F1DC1D00CAF2A2 /* Alamofire */; };
+		5ED73F1A26FB6D280045B33B /* BackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED73F1926FB6D280045B33B /* BackButton.swift */; };
+		5ED73F1C26FB6DFC0045B33B /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED73F1B26FB6DFC0045B33B /* ShareButton.swift */; };
+		5ED73F1E26FB6E670045B33B /* SaveButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED73F1D26FB6E670045B33B /* SaveButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,8 +57,10 @@
 		5E28C6BC26ED888A00483BAF /* MLMultiArray+Image.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MLMultiArray+Image.swift"; sourceTree = "<group>"; };
 		5E28C6BD26ED888A00483BAF /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		5E28C6CC26ED894600483BAF /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
-		5E28C6D026ED93E500483BAF /* DeepLabV3.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = DeepLabV3.mlmodel; sourceTree = "<group>"; };
 		5E90B09C26EFC4D400CAF2A2 /* ARToolsMVP.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ARToolsMVP.entitlements; sourceTree = "<group>"; };
+		5ED73F1926FB6D280045B33B /* BackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackButton.swift; sourceTree = "<group>"; };
+		5ED73F1B26FB6DFC0045B33B /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
+		5ED73F1D26FB6E670045B33B /* SaveButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,7 +68,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5E90B0E126F1DC1D00CAF2A2 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,12 +93,14 @@
 		5E28C69826ED884F00483BAF /* ARToolsMVP */ = {
 			isa = PBXGroup;
 			children = (
+				5E28C6CC26ED894600483BAF /* CameraModel.swift */,
+				5E28C69D26ED884F00483BAF /* ContentView.swift */,
+				5ED73F1D26FB6E670045B33B /* SaveButton.swift */,
+				5ED73F1B26FB6DFC0045B33B /* ShareButton.swift */,
+				5ED73F1926FB6D280045B33B /* BackButton.swift */,
 				5E90B09C26EFC4D400CAF2A2 /* ARToolsMVP.entitlements */,
 				5E28C69926ED884F00483BAF /* AppDelegate.swift */,
 				5E28C69B26ED884F00483BAF /* SceneDelegate.swift */,
-				5E28C69D26ED884F00483BAF /* ContentView.swift */,
-				5E28C6CC26ED894600483BAF /* CameraModel.swift */,
-				5E28C6D026ED93E500483BAF /* DeepLabV3.mlmodel */,
 				5E28C6AF26ED888900483BAF /* CoreML Helpers */,
 				5E28C69F26ED885200483BAF /* Assets.xcassets */,
 				5E28C6A426ED885200483BAF /* LaunchScreen.storyboard */,
@@ -152,7 +156,6 @@
 			);
 			name = ARToolsMVP;
 			packageProductDependencies = (
-				5E90B0E026F1DC1D00CAF2A2 /* Alamofire */,
 			);
 			productName = ARToolsMVP;
 			productReference = 5E28C69626ED884F00483BAF /* ARToolsMVP.app */;
@@ -182,7 +185,6 @@
 			);
 			mainGroup = 5E28C68D26ED884F00483BAF;
 			packageReferences = (
-				5E90B0DF26F1DC1D00CAF2A2 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = 5E28C69726ED884F00483BAF /* Products */;
 			projectDirPath = "";
@@ -212,6 +214,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5ED73F1A26FB6D280045B33B /* BackButton.swift in Sources */,
 				5E28C6C126ED888A00483BAF /* Predictions.swift in Sources */,
 				5E28C69A26ED884F00483BAF /* AppDelegate.swift in Sources */,
 				5E28C6BE26ED888A00483BAF /* Array+Extensions.swift in Sources */,
@@ -219,6 +222,7 @@
 				5E28C69C26ED884F00483BAF /* SceneDelegate.swift in Sources */,
 				5E28C6C426ED888A00483BAF /* UIImage+RawBytes.swift in Sources */,
 				5E28C69E26ED884F00483BAF /* ContentView.swift in Sources */,
+				5ED73F1E26FB6E670045B33B /* SaveButton.swift in Sources */,
 				5E28C6C726ED888A00483BAF /* CGImage+CVPixelBuffer.swift in Sources */,
 				5E28C6CD26ED894600483BAF /* CameraModel.swift in Sources */,
 				5E28C6CA26ED888A00483BAF /* MLMultiArray+Image.swift in Sources */,
@@ -227,9 +231,9 @@
 				5E28C6C926ED888A00483BAF /* CGImage+RawBytes.swift in Sources */,
 				5E28C6C226ED888A00483BAF /* UIImage+Extensions.swift in Sources */,
 				5E28C6C526ED888A00483BAF /* MLMultiArray+Helpers.swift in Sources */,
-				5E28C6D126ED93E500483BAF /* DeepLabV3.mlmodel in Sources */,
 				5E28C6C826ED888A00483BAF /* NonMaxSuppression.swift in Sources */,
 				5E28C6BF26ED888A00483BAF /* Math.swift in Sources */,
+				5ED73F1C26FB6DFC0045B33B /* ShareButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -433,25 +437,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		5E90B0DF26F1DC1D00CAF2A2 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.4.3;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		5E90B0E026F1DC1D00CAF2A2 /* Alamofire */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5E90B0DF26F1DC1D00CAF2A2 /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5E28C68E26ED884F00483BAF /* Project object */;
 }

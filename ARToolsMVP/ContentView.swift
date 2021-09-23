@@ -25,109 +25,34 @@ struct CameraView: View {
             CameraPreview(camera: camera)
             
             if showPicker {
-                Circle()
+                Rectangle()
                     .stroke(Color.white,lineWidth: 1)
-                    .frame(width: 20, height: 20)
+                    .frame(width: camera.pickWidth, height: camera.pickWidth)
             }
-            
-            
             if camera.isClipped{
                 VisualEffectView(effect: UIBlurEffect(style: .dark))
-            }
-            
-            VStack{
-                if camera.isClipped{
-                    camera.clippedImage!.resizable()
-                        .border(Color.white)
-                        .padding(10)
-                    
-                    HStack {
-                        Button(action: camera.reTake, label: {
-                            if #available(iOS 14.0, *) {
-                                Image(systemName: "chevron.backward")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,12)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            } else {
-                                Text("<-")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,12)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            }
-                        }).padding(.horizontal,15)
-                        
-                        Spacer()
-                        Button(action: camera.removeBg, label: {
-                            if #available(iOS 14.0, *) {
-                                Image(systemName: "photo.on.rectangle.angled")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,10)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            } else {
-                                Text("RemBG")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,12)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            }
-                        })
-                        
-                        Spacer()
-                        
-                        Button(action: camera.share, label: {
-                            if #available(iOS 14.0, *) {
-                                Image(systemName: "square.and.arrow.up")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,10)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            } else {
-                                Text("Share")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,15)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            }
-                        })
-                        
-                        Button(action: {camera.savePic()}, label: {
-                            if #available(iOS 14.0, *) {
-                                Image(systemName: "square.and.arrow.down")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,10)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            } else {
-                                Text("Save")
-                                    .font(.caption)
-                                    .foregroundColor(.black)
-                                    //.fontWeight(.semibold)
-                                    .padding(.vertical,15)
-                                    .padding(.horizontal,self.buttonPadding)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            }
-                        })
-                    }
-                } else {
-                    
+                camera.clippedImage!.resizable()
+                    .frame(width: UIScreen.main.bounds.size.width)
+                    //.clipped()
+                
+                //clipped bottom bar
+                VStack{
                     Spacer()
-                    
-                    HStack{
+                    HStack {
+                        BackButton(camera: self.camera, buttonPadding: self.buttonPadding)
                         Spacer()
-                        
+                        ShareButton(camera: self.camera, buttonPadding: self.buttonPadding)
+                        SaveButton(camera: self.camera, buttonPadding: self.buttonPadding)
+                    }
+                }.padding(15)
+            }else{
+                // bottom bar
+                VStack{
+                    Spacer()
+                    HStack{
                         if !self.showPicker{
-                            
+                            Spacer()
+                            //main camera button
                             Button(action: camera.takePic, label: {
                                 ZStack{
                                     Circle()
@@ -138,25 +63,54 @@ struct CameraView: View {
                                         .frame(width: 75, height: 75)
                                 }
                             })
-                            .padding(.leading, 60)
+                                .padding(.leading, 60)
                         } else {
-                            HStack {
+                            Button(action: {camera.pickColor()}, label: {
+                                if #available(iOS 14.0, *) {
+                                    Image(systemName: "eyedropper")
+                                        .foregroundColor(.black)
+                                        .padding(.vertical,10)
+                                        .padding(.horizontal,20)
+                                        .background(Color.white)
+                                        .clipShape(Capsule())
+                                } else {
+                                    Text("C")
+                                        .foregroundColor(.black)
+                                        .padding(.vertical,10)
+                                        .padding(.horizontal,20)
+                                        .background(Color.white)
+                                        .clipShape(Capsule())
+                                }
+                            })
+                            Spacer()
+                            
+                            //show color
+                            HStack(){
+                                if camera.centerColor != nil {
                                 Rectangle()
                                     .foregroundColor(Color(camera.centerColor ?? UIColor.white))
-                                    .frame(width: 40, height: 40)
+                                    .frame(width: 35, height: 35)
                                     .border(Color.gray, width: 1)
                                 Text(hexStringFromColor(color: camera.centerColor))
                                     .foregroundColor(.black)
-                                    .font(.title)
-                                    .frame(width:120)
+                                    .font(.system(size: 13))
+                                    .frame(width:70)
+                                } else {
+                                    Text("Pick color\nTap eyedropper icon")
+                                        .foregroundColor(.black)
+                                        .font(.system(size: 13))
+                                }
                             }
-                            .frame(width: 220, height: 75)
+                            .frame(width: 150, height: 75)
                             .background(Color.white)
                             .clipShape(Capsule())
                             
                         }
                         Spacer()
-                        Button(action: {self.showPicker.toggle()}, label: {
+                        Button(action: {
+                            self.showPicker.toggle()
+                            camera.centerColor = nil
+                        }, label: {
                             if #available(iOS 14.0, *) {
                                 Image(systemName: "paintpalette")
                                     .foregroundColor(.black)
@@ -173,19 +127,20 @@ struct CameraView: View {
                                     .clipShape(Capsule())
                             }
                         })
-                    }
-                    .frame(height: 75)
-                }
-            }.padding(15)
-            
-            if camera.isUploading{
-                VisualEffectView(effect: UIBlurEffect(style: .dark))
-                Text("Uploading…")
-                    .font(.title)
-                    .foregroundColor(.white)
+                    }.frame(height: 75)
+                    
+                }.padding(15)
             }
-            
+        
+            /*if camera.isUploading{
+             VisualEffectView(effect: UIBlurEffect(style: .dark))
+             Text("Uploading…")
+             .font(.title)
+             .foregroundColor(.white)
+             }*/
+
         }
+        .edgesIgnoringSafeArea(.all)
         .onAppear(perform: {
             camera.authorizeCamera()
         })
