@@ -19,6 +19,7 @@
 		5ED73F1E26FB6E670045B33B /* SaveButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED73F1D26FB6E670045B33B /* SaveButton.swift */; };
 		5ED73F2426FDBD1F0045B33B /* PickColorButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED73F2326FDBD1F0045B33B /* PickColorButton.swift */; };
 		5ED73F2626FDBE0E0045B33B /* ColorpickerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ED73F2526FDBE0E0045B33B /* ColorpickerButton.swift */; };
+		5ED73F2926FE6FED0045B33B /* u2net.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 5ED73F2826FE6FED0045B33B /* u2net.mlmodel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 		5ED73F1D26FB6E670045B33B /* SaveButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveButton.swift; sourceTree = "<group>"; };
 		5ED73F2326FDBD1F0045B33B /* PickColorButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickColorButton.swift; sourceTree = "<group>"; };
 		5ED73F2526FDBE0E0045B33B /* ColorpickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorpickerButton.swift; sourceTree = "<group>"; };
+		5ED73F2826FE6FED0045B33B /* u2net.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = u2net.mlmodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +74,7 @@
 				5E28C6CC26ED894600483BAF /* CameraModel.swift */,
 				5E28C69D26ED884F00483BAF /* ContentView.swift */,
 				5ED73F2726FDBED60045B33B /* Buttons */,
+				5ED73F2826FE6FED0045B33B /* u2net.mlmodel */,
 				5E90B09C26EFC4D400CAF2A2 /* ARToolsMVP.entitlements */,
 				5E28C69926ED884F00483BAF /* AppDelegate.swift */,
 				5E28C69B26ED884F00483BAF /* SceneDelegate.swift */,
@@ -184,6 +187,7 @@
 				5E28C69E26ED884F00483BAF /* ContentView.swift in Sources */,
 				5ED73F1E26FB6E670045B33B /* SaveButton.swift in Sources */,
 				5E28C6CD26ED894600483BAF /* CameraModel.swift in Sources */,
+				5ED73F2926FE6FED0045B33B /* u2net.mlmodel in Sources */,
 				5ED73F2626FDBE0E0045B33B /* ColorpickerButton.swift in Sources */,
 				5ED73F1C26FB6DFC0045B33B /* ShareButton.swift in Sources */,
 			);
