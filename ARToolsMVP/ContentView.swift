@@ -32,7 +32,7 @@ struct CameraView: View {
             
             if camera.isClipped{
                 //blur camera preview
-                VisualEffectView(effect: UIBlurEffect(style: .dark))
+                //VisualEffectView(effect: UIBlurEffect(style: .dark))
                 
                 //show clipped image full screen
                 camera.clippedImage!.resizable()
