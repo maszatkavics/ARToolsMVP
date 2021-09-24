@@ -20,7 +20,9 @@ A nice summary to get deeper into Neural Networks: [Types of Neural Networks and
 
 ## Update pre-trained model
 Object detection **can be improved** by replacing the current pre-trained model.  
-The **u2net.mlmodel** is located in the ARToolsMVP folder. Due to filesize limitations of github recently this repository contains the small version (4.6MB). The large model (176 MB) needs to be downloaded form Google Drive from this link (todo: link), then the current file needs to be replaced.
+The **u2net.mlmodel** is located in the ARToolsMVP folder. Due to filesize limitations of github recently this repository contains the small version (4.6MB). The large model (176 MB) can be downloaded from Dropbox (todo: link), then the current file needs to be replaced.
 
-## Manually create the large size CoreML compatible pre-trained model from U2Net.
-todo: continue
+## Generate CoreML compatible pre-trained model from U2Net
+U2Net [requested libraries](https://github.com/xuebinqin/U-2-Net#required-libraries) needs to be installed then follow the [usage instructions]( https://github.com/xuebinqin/U-2-Net#usage-for-salient-object-detection) (make sure to download "model u2net.pth").  
+Copy [convert2mlmodel.py](https://github.com/maszatkavics/ARToolsMVP/blob/04b56caf70a267c014c1c9da64f9b4abcaa0fd61/convert2mlmodel.py) to U2Net folder and run it with python. Once run with success the large u2net.mlmodel file will be generated. Overwrite the file in ARToolsMVP directory.
+
