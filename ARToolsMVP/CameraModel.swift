@@ -8,6 +8,7 @@
 import SwiftUI
 import AVFoundation
 import CoreML
+import VideoToolbox
 
 class CameraModel: NSObject,ObservableObject,AVCapturePhotoCaptureDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
     @Published var session = AVCaptureSession()
@@ -252,6 +253,14 @@ extension UIImage {
         return scaledImage
     }
     
+    public convenience init?(pixelBuffer: CVPixelBuffer) {
+      if let cgImage = CGImage.create(pixelBuffer: pixelBuffer) {
+        self.init(cgImage: cgImage)
+      } else {
+        return nil
+      }
+    }
+    
     // color picker
     func cropsToSquare(cropSize: CGFloat) -> UIImage {
         let refWidth = CGFloat((self.cgImage!.width))
@@ -280,4 +289,12 @@ extension UIImage {
         
         return UIColor(red: CGFloat(bitmap[0]) / 255, green: CGFloat(bitmap[1]) / 255, blue: CGFloat(bitmap[2]) / 255, alpha: CGFloat(bitmap[3]) / 255)
     }
+}
+
+extension CGImage {
+  public static func create(pixelBuffer: CVPixelBuffer) -> CGImage? {
+    var cgImage: CGImage?
+    VTCreateCGImageFromCVPixelBuffer(pixelBuffer, options: nil, imageOut: &cgImage)
+    return cgImage
+  }
 }
