@@ -11,3 +11,7 @@ Picks the average color of pixels within a rectange in the midle of the camera i
 Salient Object Detection based background removal.  
 *Usage:* Take a picture, wait for object detection. The image of the salient object without background can be shared or saved to phone.
 
+![](images/remov.png)
+
+### Object detection
+todo
