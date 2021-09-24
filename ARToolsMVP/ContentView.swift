@@ -15,25 +15,28 @@ struct ContentView: View {
 }
 
 struct CameraView: View {
-    @ObservedObject var camera = CameraModel()
-    @State var showPicker = false
-    
     let buttonPadding: CGFloat = 20.0
-    
+    @ObservedObject var camera = CameraModel()
+        
     var body: some View{
         ZStack{
+            // preview for the camera
             CameraPreview(camera: camera)
             
-            if showPicker {
+            // rectangle for color picker
+            if self.camera.showPicker {
                 Rectangle()
                     .stroke(Color.white,lineWidth: 1)
                     .frame(width: camera.pickWidth, height: camera.pickWidth)
             }
+            
             if camera.isClipped{
+                //blur camera preview
                 VisualEffectView(effect: UIBlurEffect(style: .dark))
+                
+                //show clipped image full screen
                 camera.clippedImage!.resizable()
                     .frame(width: UIScreen.main.bounds.size.width)
-                    //.clipped()
                 
                 //clipped bottom bar
                 VStack{
@@ -50,8 +53,9 @@ struct CameraView: View {
                 VStack{
                     Spacer()
                     HStack{
-                        if !self.showPicker{
+                        if !self.camera.showPicker{
                             Spacer()
+                            
                             //main camera button
                             Button(action: camera.takePic, label: {
                                 ZStack{
@@ -63,38 +67,23 @@ struct CameraView: View {
                                         .frame(width: 75, height: 75)
                                 }
                             })
-                                .padding(.leading, 60)
+                            .padding(.leading, 60)
                         } else {
-                            Button(action: {camera.pickColor()}, label: {
-                                if #available(iOS 14.0, *) {
-                                    Image(systemName: "eyedropper")
-                                        .foregroundColor(.black)
-                                        .padding(.vertical,10)
-                                        .padding(.horizontal,20)
-                                        .background(Color.white)
-                                        .clipShape(Capsule())
-                                } else {
-                                    Text("C")
-                                        .foregroundColor(.black)
-                                        .padding(.vertical,10)
-                                        .padding(.horizontal,20)
-                                        .background(Color.white)
-                                        .clipShape(Capsule())
-                                }
-                            })
+                            PickColorButton(camera: self.camera)
+                            
                             Spacer()
                             
                             //show color
                             HStack(){
                                 if camera.centerColor != nil {
-                                Rectangle()
-                                    .foregroundColor(Color(camera.centerColor ?? UIColor.white))
-                                    .frame(width: 35, height: 35)
-                                    .border(Color.gray, width: 1)
-                                Text(hexStringFromColor(color: camera.centerColor))
-                                    .foregroundColor(.black)
-                                    .font(.system(size: 13))
-                                    .frame(width:70)
+                                    Rectangle()
+                                        .foregroundColor(Color(camera.centerColor ?? UIColor.white))
+                                        .frame(width: 35, height: 35)
+                                        .border(Color.gray, width: 1)
+                                    Text(camera.hexStringColor())
+                                        .foregroundColor(.black)
+                                        .font(.system(size: 13))
+                                        .frame(width:70)
                                 } else {
                                     Text("Pick color\nTap eyedropper icon")
                                         .foregroundColor(.black)
@@ -107,38 +96,20 @@ struct CameraView: View {
                             
                         }
                         Spacer()
-                        Button(action: {
-                            self.showPicker.toggle()
-                            camera.centerColor = nil
-                        }, label: {
-                            if #available(iOS 14.0, *) {
-                                Image(systemName: "paintpalette")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,10)
-                                    .padding(.horizontal,20)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            } else {
-                                Text("P")
-                                    .foregroundColor(.black)
-                                    .padding(.vertical,10)
-                                    .padding(.horizontal,20)
-                                    .background(Color.white)
-                                    .clipShape(Capsule())
-                            }
-                        })
+                        ColorpickerButton(camera: self.camera)
                     }.frame(height: 75)
                     
                 }.padding(15)
             }
-        
-            /*if camera.isUploading{
-             VisualEffectView(effect: UIBlurEffect(style: .dark))
-             Text("Uploading…")
-             .font(.title)
-             .foregroundColor(.white)
-             }*/
-
+            
+            // blur while removing bg
+            if camera.isRemoving{
+                VisualEffectView(effect: UIBlurEffect(style: .dark))
+                Text("Removing background…")
+                    .font(.system(size: 14))
+                    .foregroundColor(.white)
+            }
+    
         }
         .edgesIgnoringSafeArea(.all)
         .onAppear(perform: {
@@ -148,40 +119,22 @@ struct CameraView: View {
             Alert(title: Text("Please Enable Camera Access"))
         }
     }
-    
-    func hexStringFromColor(color: UIColor?) -> String {
-        let components = color?.cgColor.components
-        let r: CGFloat = components?[0] ?? 0.0
-        let g: CGFloat = components?[1] ?? 0.0
-        let b: CGFloat = components?[2] ?? 0.0
-        
-        let hexString = String.init(format: "#%02lX%02lX%02lX", lroundf(Float(r * 255)), lroundf(Float(g * 255)), lroundf(Float(b * 255)))
-        return hexString
-    }
 }
 
 struct CameraPreview: UIViewRepresentable {
-    
     @ObservedObject var camera : CameraModel
     
     func makeUIView(context: Context) ->  UIView {
-        
         let view = UIView(frame: UIScreen.main.bounds)
-        
         camera.preview = AVCaptureVideoPreviewLayer(session: camera.session)
         camera.preview.frame = view.frame
-        
         camera.preview.videoGravity = .resizeAspectFill
         view.layer.addSublayer(camera.preview)
-        
         camera.session.startRunning()
-        
         return view
     }
     
-    func updateUIView(_ uiView: UIView, context: Context) {
-        
-    }
+    func updateUIView(_ uiView: UIView, context: Context) {}
 }
 
 struct VisualEffectView: UIViewRepresentable {

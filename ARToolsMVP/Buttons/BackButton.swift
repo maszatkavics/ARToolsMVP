@@ -28,6 +28,6 @@ struct BackButton: View {
                     .background(Color.white)
                     .clipShape(Capsule())
             }
-        }).padding(.horizontal,15)
+        })
     }
 }
