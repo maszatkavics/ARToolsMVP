@@ -1,4 +1,3 @@
-# ARToolsMVP
 ARToolsMVP is an iOS app for experinmental AR tools
 
 ## AR Color Picker
